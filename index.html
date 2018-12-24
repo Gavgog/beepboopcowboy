@@ -1,0 +1,738 @@
+<HTML>
+<head>
+  <link href='http://fonts.googleapis.com/css?family=Ubuntu:bold' rel='stylesheet' type='text/css'>
+<link href='http://fonts.googleapis.com/css?family=Vollkorn' rel='stylesheet' type='text/css'>
+<style>
+body{
+  background-color: #E0E0E0;
+}
+#bgdiv{
+  position:fixed;
+  top:-5%;
+  left:-5%;
+  width:110%;
+  height:110%;
+  background-image: url("media/background.png");
+  background-size:700px 700px;
+  filter: blur(2px);
+}
+#gameCanvas {
+  position:fixed;
+  top:50px;
+  left: calc(50% - 400px);
+}
+.welcometext {
+  color: #FAFAFA;
+  position: fixed;
+  left: 0;
+  width:100%;
+  top:-100px;
+  text-align: center;
+font-family: 'Lato', sans-serif; font-size: 54px; font-weight: 300; line-height: 58px;	font-size: 50px;
+	line-height: 65px;
+  transition: top 1s;
+  transition-timing-function: ease-in-out;
+}
+#odisp{
+  position: fixed;
+  width: 100%;
+  height:100%;
+  top:0;
+  left:0;
+  background-color: #000000;
+  opacity: 0.8;
+  transition: opacity 1s;
+
+}
+</style>
+</head>
+<body>
+<div id="bgdiv"></div>
+<canvas id="gameCanvas" width="800px" height="600px" tabindex="0"></canvas>
+
+
+
+<div id="first" class="welcometext">
+
+</div>
+<div id="second" class="welcometext">
+
+</div>
+
+<script>
+function startup(){
+  var center = screen.width - 1550;
+  document.getElementById('first').style.top = 250 + 'px';
+}
+function stg1start(){
+  document.getElementById('first').style.top = '-250px';
+  document.getElementById('second').style.top = 250 + 'px';
+}
+function stg2start(){
+  document.getElementById('odisp').style.opacity = '0';
+  document.getElementById('second').style.top = '-250px';
+}
+function closestart(){
+  document.getElementById('odisp').style.top = '-100%';
+}
+
+</script>
+
+<script>
+
+playerimg = new Image();
+playerimg.src = 'media/player.png';
+
+players1 = new Image();
+players1.src = 'media/player2.png';
+
+players2 = new Image();
+players2.src = 'media/player3.png';
+
+cactus1 = new Image();
+cactus1.src = 'media/cactus1.png';
+
+cactus2 = new Image();
+cactus2.src = 'media/cactus2.png';
+
+barrel = new Image();
+barrel.src = 'media/barrel.png';
+
+npc1 = new Image();
+npc1.src = 'media/npc1.png';
+
+npc2 = new Image();
+npc2.src = 'media/npc2.png';
+
+npcdead = new Image();
+npcdead.src = 'media/npcdead.png';
+
+grave1 = new Image();
+grave1.src = 'media/grave1.png';
+
+bulletspeedico = new Image();
+bulletspeedico.src = 'media/bulletspeedico.png';
+
+bulletpenico = new Image();
+bulletpenico.src = 'media/bulletpenico.png';
+
+multibulletico = new Image();
+multibulletico.src = 'media/multibulletico.png';
+
+explosiveico = new Image();
+explosiveico.src = 'media/explosiveico.png';
+
+speedico = new Image();
+speedico.src = 'media/speedico.png';
+
+rangeico = new Image();
+rangeico.src = 'media/rangeico.png';
+
+
+  var pixels = 0;
+
+
+var canvas;
+var canvasContext;
+var framerate = 60;
+canvas = document.getElementById('gameCanvas');
+canvasContext = canvas.getContext('2d');
+canvas.focus();
+canvas.tabIndex = 0;
+
+var playerx = 20;
+var playery = 20;
+var playerx_vel = 1;
+var playery_vel = 1;
+
+var money = 0;
+
+
+var key = {};
+var maxspeed = 4;
+var background_array = [[60,40,1]];
+var npc_array = [[60,40,10,90,1,0,0]];
+var shootie_array = [];
+var badie_array = [];
+var biomesize = 1000;
+var bulletlife = 70;
+var bulletspeed = 6;
+var bcd = 50;
+var bullettimer = 0;
+var npcmpvespeed = 1;
+var menuvalue = 0;
+var menuopencount = 0;
+var menuflash = 7;
+var npcshootrate = 10;
+var npcbulletvel = 3;
+var playeralive = 1;
+
+var npccount = 10;
+
+var xp = 0;
+var level = 1;
+var skillpoints = 0;
+var bullets = 1;
+
+var lcost = 1;
+var lprog = 1;
+var rcost = 1;
+var rprog = 1;
+
+var ammo = 25;
+var chamber = 5;
+var bulletcap = 6;
+
+var xskills = ["reload speed +1","reload speed +1","reload speed +1","reload speed +1","bullets +1","reload speed +1","reload speed +1"];
+var zskills = ["speed +1","range +1", "speed +1","range +1", "speed +1","bullets +1","bullets +1","bullets +1"];
+
+var playerstep = 0;
+var playerstepcount = 0;
+
+var pgmcounter = 0; //------------------------------------------------------- warning only for use in site
+var ncall = true;
+
+  window.onload = function(){
+    startup();
+	loadGame();
+	setInterval(game,1000/framerate);
+  }
+
+  function loadGame(){
+  var type = Math.round(Math.random()*2);
+    for (var i = 0; i < 40; i ++) {//spawn background objects
+      type = Math.round(Math.random()*2);
+  	  background_array[i] = [(Math.random()*biomesize*2) - biomesize,(Math.random()*biomesize*2) - biomesize,type];
+    }
+    for (var i = 0; i < npccount; i ++) {//spawn npcs
+  	  npc_array[i] = [(Math.random()*biomesize*2) - biomesize,(Math.random()*biomesize*2) - biomesize,(Math.random()*biomesize*2) - biomesize,(Math.random()*biomesize*2) - biomesize,1,0,0];
+    }
+  }
+
+  canvas.onkeydown = canvas.onkeyup = function(e){
+    var e = e || event;
+    key[e.keyCode] = e.type == 'keydown';
+  };
+
+  function game(){
+
+	playerpos();
+	draw();
+	keyPush();
+	npc();
+
+
+	if(menuopencount < menuflash + 1){
+	menuopencount ++;
+	}
+
+
+}
+
+  function npc() {
+    for (var npci = 0; npci < npc_array.length; npci ++) {
+      npc_array[npci][5] ++;
+      for(var checkb = 0; checkb < shootie_array.length; checkb++) {
+        //console.log(npc_array[npci][0] + " " + shootie_array[checkb][2]);
+        if ((npc_array[npci][0] < shootie_array[checkb][2]) & (npc_array[npci][0] + 33 > shootie_array[checkb][2])){
+          if ((npc_array[npci][1] < shootie_array[checkb][3]) & (npc_array[npci][1] + 48 > shootie_array[checkb][3])){
+		  //condition where npc dies
+		  		xp += 31;
+          money += 5;
+
+				//respawn
+				npc_array.push([(Math.random()*biomesize*2) - biomesize,(Math.random()*biomesize*2) - biomesize,(Math.random()*biomesize*2) - biomesize,(Math.random()*biomesize*2) - biomesize,1,0,0]);
+				npc_array.push([(Math.random()*biomesize*2) - biomesize,(Math.random()*biomesize*2) - biomesize,(Math.random()*biomesize*2) - biomesize,(Math.random()*biomesize*2) - biomesize,1,0,0]);
+
+            background_array.push([npc_array[npci][0],npc_array[npci][1],3]);
+            npc_array.splice(npci, 1);
+            shootie_array.splice(checkb, 1);
+            if (shootie_array.length == 0){break;}
+          }
+
+        }
+        if (npc_array.length == 0){break;}
+      }
+      if (npc_array.length == 0){break;}
+      if (npc_array[npci] == undefined){break;}
+
+      if (npc_array[npci][5] > 10) {//npc takes step
+          npc_array[npci][5] = 0;
+          if (npc_array[npci][4] == 0) {
+            npc_array[npci][4] = 1;
+          } else {
+            npc_array[npci][4] = 0;
+          }
+        }
+		npc_array[npci][6] ++;
+
+		if (npc_array[npci][6] < npcshootrate){
+		var rand = Math.random();
+			if (rand < 0.01){
+				if (rand < 0.0025){
+				badie_array.push([0,-npcbulletvel,npc_array[npci][0],npc_array[npci][1],70*60/framerate]);
+				}else if(rand < 0.005){
+				badie_array.push([0,npcbulletvel,npc_array[npci][0],npc_array[npci][1],70*60/framerate]);
+				}else if(rand < 0.0075){
+				badie_array.push([-npcbulletvel,0,npc_array[npci][0],npc_array[npci][1],70*60/framerate]);
+				}else{
+				badie_array.push([npcbulletvel,0,npc_array[npci][0],npc_array[npci][1],70*60/framerate]);
+				}
+			}
+			npc_array[npci][6] = 0;
+		}
+
+
+
+
+          if (npc_array[npci][0] < npc_array[npci][2]){
+            npc_array[npci][0] ++;
+            if ((npc_array[npci][0] - npc_array[npci][2]) > -1){
+                npc_array[npci][2] = newdestination();
+            }
+          }else{
+            npc_array[npci][0] --;
+            if ((npc_array[npci][0] - npc_array[npci][2]) < 1){
+                npc_array[npci][2] = newdestination();
+            }
+          }
+
+          if (npc_array[npci][1] < npc_array[npci][3]){
+            npc_array[npci][1] ++;
+            if ((npc_array[npci][1] - npc_array[npci][3]) > -1){
+                npc_array[npci][3] = newdestination();
+            }
+          }else{
+            npc_array[npci][1] --;
+            if ((npc_array[npci][1] - npc_array[npci][3]) < 1){
+                npc_array[npci][3] = newdestination();
+            }
+          }
+
+
+    }
+
+  }
+
+function newdestination(){
+  var newplace = (Math.random()*biomesize*2) - biomesize;
+  return newplace;
+}
+
+  function playerpos() {
+
+  if (xp > level * 50){
+  xp = 0;
+  level ++;//level up
+  skillpoints ++;
+  }
+
+	if (playerx_vel < 0) {
+    playerstepcount ++;
+		if (playerx_vel < -maxspeed) {
+			playerx_vel = -maxspeed;
+		} else {
+			playerx_vel += 0.5;
+		}
+	} else if (playerx_vel > 0) {
+    playerstepcount ++;
+		if (playerx_vel > maxspeed) {
+			playerx_vel = +maxspeed;
+		} else {
+			playerx_vel -= 0.5;
+		}
+	}
+	if (playery_vel < 0) {
+    playerstepcount ++;
+		if (playery_vel < -maxspeed) {
+			playery_vel = -maxspeed;
+		} else {
+			playery_vel += 0.5;
+		}
+	} else if (playery_vel > 0) {
+    playerstepcount ++;
+		if (playery_vel > maxspeed) {
+			playery_vel = +maxspeed;
+		} else {
+			playery_vel -= 0.5;
+		}
+	}
+	if (playeralive == 1){
+  if ((playerx_vel == 0) & (playery_vel == 0)) {
+    playerstepcount = 0;
+    playerstep = 0;
+  }
+  }
+
+  if (playerstepcount > 10) {
+    playerstepcount = 0;
+    if (playerstep <= 1) {
+      playerstep ++;
+    } else if (playerstep == 2) {
+      playerstep --;
+    }
+  }
+
+	playerx += playerx_vel;
+	playery += playery_vel;
+
+	if (bullettimer > 0) {
+	 bullettimer -= 1;
+	 }
+
+  }
+
+  function shoot(direction){
+
+    if (bullettimer < 2) {
+      if (chamber > 1){
+        chamber --;
+      }else{//reload cycle
+        bullettimer = 5*bcd;
+        if (ammo > bulletcap){
+          chamber = bulletcap;
+          ammo -= bulletcap;
+        }else{
+          chamber = ammo;
+          ammo = 0;
+        }
+        return
+      }
+	  switch (direction) {
+
+		case 'up':
+		shootie_array.push([0,-bulletspeed,playerx+410,playery+309,bulletlife*60/framerate]);
+		for (var b = 1; b < bullets; b++){
+			shootie_array.push([-0.2*b,-bulletspeed,playerx+410,playery+309,bulletlife*60/framerate]);
+			shootie_array.push([0.2*b,-bulletspeed,playerx+410,playery+309,bulletlife*60/framerate]);
+		}
+		break;
+		case 'down':
+		shootie_array.push([0,bulletspeed,playerx+410,playery+309,bulletlife*60/framerate]);
+		for (var b = 1; b < bullets; b++){
+			shootie_array.push([-0.2*b,bulletspeed,playerx+410,playery+309,bulletlife*60/framerate]);
+			shootie_array.push([0.2*b,bulletspeed,playerx+410,playery+309,bulletlife*60/framerate]);
+		}
+		break;
+		case 'right':
+		shootie_array.push([bulletspeed,0,playerx+415,playery+316,bulletlife*60/framerate]);
+		for (var b = 1; b < bullets; b++){
+			shootie_array.push([bulletspeed,-0.2*b,playerx+410,playery+309,bulletlife*60/framerate]);
+			shootie_array.push([bulletspeed,0.2*b,playerx+410,playery+309,bulletlife*60/framerate]);
+		}
+		break;
+		case 'left':
+		shootie_array.push([-bulletspeed,0,playerx+415,playery+316,bulletlife*60/framerate]);
+		for (var b = 1; b < bullets; b++){
+			shootie_array.push([-bulletspeed,0.2*b,playerx+410,playery+309,bulletlife*60/framerate]);
+			shootie_array.push([-bulletspeed,-0.2*b,playerx+410,playery+309,bulletlife*60/framerate]);
+		}
+		break;
+	  }
+	  bullettimer = bcd;
+  }
+  }
+
+  function upgrader(){
+  if (menuvalue == 1){
+	  if (skillpoints >= lcost){
+		skillpoints --;
+		lprog ++;
+		menuvalue = 0;
+	  }
+  }
+  //Ztree
+  if (lprog == 2){
+	maxspeed = 5;
+  }
+  if (lprog == 3){
+	bulletlife = 100;
+  }
+    if (lprog == 4){
+	maxspeed = 6;
+  }
+  if (lprog == 5){
+	bulletlife = 120;
+  }
+  if (lprog == 6){
+	maxspeed = 7;
+  }
+  if (lprog == 6){
+	bullets ++;
+  }
+    if (lprog == 6){
+	bullets ++;
+  }
+    if (lprog == 6){
+	bullets ++;
+  }
+
+
+
+  }
+
+  function upgradel(){
+  if (menuvalue == 1){
+	  if (skillpoints >= rcost){
+		skillpoints --;
+		rprog ++;
+		menuvalue = 0;
+		}
+	}
+	//Xtree
+	if (rprog == 2){
+		bcd = 40;
+	  }
+	 if (rprog == 3){
+		bcd = 20;
+	  }
+	  if (rprog == 4){
+		bcd = 10;
+	  }
+	  if (rprog == 5){
+		bcd = 8;
+	  }
+	  	 if (rprog == 6){
+		bcd = 5;
+	  }
+	  	  if (rprog == 7){
+		bcd = 3;
+	  }
+  }
+
+
+  function shoptoggle(){
+  if (menuvalue == 0){
+	if (menuopencount > menuflash){
+		menuvalue = 1;
+		menuopencount = 0;
+	}
+  }
+  if (menuvalue == 1){
+	if (menuopencount > menuflash){
+		menuvalue = 0;
+		menuopencount = 0;
+	}
+  }
+  }
+
+  function draw(){
+	canvasContext.fillStyle = '#FFE082';
+	canvasContext.font = "30px Arial";
+	canvasContext.fillRect(0,0,canvas.width,canvas.height);
+
+
+
+
+	for (var i = 0; i < background_array.length; i++) {
+    switch (background_array[i][2]) {
+    case (0):
+      canvasContext.drawImage(cactus1,background_array[i][0] - playerx, background_array[i][1] - playery,50,50);
+    break;
+    case (1):
+      canvasContext.drawImage(cactus2,background_array[i][0] - playerx, background_array[i][1] - playery,50,50);
+    break;
+    case (2):
+      canvasContext.drawImage(barrel,background_array[i][0] - playerx, background_array[i][1] - playery,40,50);
+    break;
+    case (3):
+      canvasContext.drawImage(npcdead,background_array[i][0] - playerx, background_array[i][1] - playery,40,50);
+    break;
+  }
+	}
+
+  for (var j = 0; j < npc_array.length; j++) {//drawcowboy
+    if (npc_array[j][4] == 1) {
+      canvasContext.drawImage(npc1,npc_array[j][0] - playerx, npc_array[j][1] - playery,35,50);
+    } else {
+      canvasContext.drawImage(npc2,npc_array[j][0] - playerx, npc_array[j][1] - playery,35,50);
+    }
+  }
+
+	for (var x = 0; x < shootie_array.length; x++) {//draw player bullets
+		canvasContext.fillStyle = '#202020';
+		shootie_array[x][2] += shootie_array[x][0];
+		shootie_array[x][3] += shootie_array[x][1];
+		shootie_array[x][4] -= 1;
+		if (shootie_array[x][4] < 0) {
+			shootie_array.splice(x, 1);
+		}
+    if (shootie_array.length == 0){break;}
+		canvasContext.fillRect(shootie_array[x][2] - playerx, shootie_array[x][3] - playery,3,3);
+	}
+
+		for (var x = 0; x < badie_array.length; x++) {//draw other bullets
+		canvasContext.fillStyle = '#202020';
+		badie_array[x][2] += badie_array[x][0];
+		badie_array[x][3] += badie_array[x][1];
+		badie_array[x][4] -= 1;
+
+
+		if(((badie_array[x][2] - playerx)>395) &&((badie_array[x][2] - playerx)<(395+35))){
+				if(((badie_array[x][3] - playery)>295) &&((badie_array[x][3] - playery)<(295+50))){
+				die();
+			}
+		}
+
+		if (badie_array[x][4] < 0) {
+			badie_array.splice(x, 1);
+		}
+
+    if (badie_array.length == 0){break;}
+		canvasContext.fillRect(badie_array[x][2] - playerx, badie_array[x][3] - playery,3,3);
+	}
+	//draw player
+  if (playerstep == 0){
+    canvasContext.drawImage(playerimg,395,295, 35, 50);
+  } else if(playerstep == 1){
+    canvasContext.drawImage(players1,395,295, 35, 50);
+  } else if(playerstep == 2){
+    canvasContext.drawImage(players2,395,295, 35, 50);
+  }else if(playerstep == 3){
+    canvasContext.drawImage(grave1,395,295, 45, 45);
+  }
+
+
+  if (bullettimer < bcd){
+  canvasContext.fillText(chamber+"/"+ammo+"", 10, 590);
+  }else{
+    canvasContext.fillText("RELOADING", 10, 590);
+  }
+  canvasContext.fillText("$"+money, 10, 80);
+
+  if (menuvalue == 1){//menu design
+  	canvasContext.fillStyle = '#90A4AE';
+	canvasContext.fillRect(50,50,canvas.width - 100,canvas.height - 100);
+	canvasContext.fillStyle = '#AED581';
+    canvasContext.strokeText("Skill points: " + skillpoints,canvas.width - 230,43);
+    canvasContext.strokeText("Level: " + level,50,43);
+
+	canvasContext.fillStyle = '#FFAB91';
+	canvasContext.fillRect((canvas.width/2)+40,60,(canvas.width/2) - 100,canvas.height - 120);
+
+	canvasContext.fillStyle = '#81D4FA';
+	canvasContext.fillRect(60,60,(canvas.width/2) - 100,canvas.height - 120);
+
+	canvasContext.fillStyle = '#FFFFFF';
+	canvasContext.font = "60px Arial";
+
+	canvasContext.strokeText("X",canvas.width - 225,125);
+    canvasContext.strokeText("Z",192, 125);
+
+	canvasContext.font = "30px Arial";
+
+	canvasContext.fillText(xskills[rprog-1],canvas.width - 315,160);
+    canvasContext.fillText(zskills[lprog-1],147, 160);
+
+canvasContext.font = "20px Arial";
+
+
+
+	for (var skillz = 0; skillz < zskills.length; skillz ++){//-----------------------------------------------writing skilltree for left side
+
+
+		canvasContext.fillStyle = '#29B6F6';
+		if(lprog - 1 > skillz){
+		canvasContext.fillRect(70,((canvas.height - 103) - (skillz*40)),280,36);
+		}
+		canvasContext.fillStyle = '#B3E5FC';
+		if(lprog - 1 == skillz){
+		canvasContext.fillRect(70,((canvas.height - 103) - (skillz*40)),280,36);
+		}
+
+		canvasContext.fillStyle = '#FFFFFF';
+		if (zskills[skillz] == "speed +1"){
+		canvasContext.drawImage(speedico,315,((canvas.height - 100) - (skillz*40)), 30, 30);
+		}
+
+		if (zskills[skillz] == "range +1"){
+		canvasContext.drawImage(rangeico,315,((canvas.height - 100) - (skillz*40)), 30, 30);
+		}
+		if (zskills[skillz] == "bullets +1"){
+		canvasContext.drawImage(multibulletico,315,((canvas.height - 100) - (skillz*40)), 30, 30);
+		}
+		canvasContext.fillText(zskills[skillz],80, ((canvas.height - 77) - (skillz*40)));
+	}
+
+
+	for (var skillx = 0; skillx < xskills.length; skillx ++){//-----------------------------------------------writing skilltree for left side
+
+		canvasContext.fillStyle = '#FF7043';
+		if(rprog - 1 > skillx){
+		canvasContext.fillRect((canvas.width/2) + 50,((canvas.height - 103) - (skillx*40)),280,36);
+		}
+		canvasContext.fillStyle = '#FFCCBC';
+		if(rprog - 1 == skillx){
+		canvasContext.fillRect((canvas.width/2) + 50,((canvas.height - 103) - (skillx*40)),280,36);
+		}
+
+		canvasContext.fillStyle = '#FFFFFF';
+		if (xskills[skillx] == "reload speed +1"){
+		canvasContext.drawImage(bulletspeedico,(canvas.width/2) + 300,((canvas.height - 100) - (skillx*40)), 30, 30);
+		}
+		if (xskills[skillx] == "range +1"){
+		canvasContext.drawImage(rangeico,315,((canvas.height - 100) - (skillx*40)), 30, 30);
+		}
+		if (xskills[skillx] == "bullets +1"){
+		canvasContext.drawImage(multibulletico,(canvas.width/2) + 300,((canvas.height - 100) - (skillx*40)), 30, 30);
+		}
+		canvasContext.fillText(xskills[skillx],(canvas.width/2) + 60, ((canvas.height - 77) - (skillx*40)));
+	}
+	canvasContext.font = "30px Arial";
+
+
+  }else{
+  	canvasContext.fillStyle = '#AED581';
+    canvasContext.strokeText("Level: " + level,10,35);
+  }
+
+	pixels = xp *canvas.width/(level*50);
+	canvasContext.fillStyle = '#81D4FA';
+    canvasContext.fillRect(0,0,pixels,10);
+
+
+	  if(playeralive == 0){
+	  	canvasContext.fillStyle = '#332929';
+		canvasContext.fillRect(0,0,canvas.width,150);
+		canvasContext.fillRect(0,canvas.height - 150,canvas.width,150);
+		canvasContext.fillStyle = '#FFFAFA';
+		canvasContext.font = "120px Arial";
+		canvasContext.fillText("R.I.P",275, 115);
+		canvasContext.font = "30px Arial";
+		canvasContext.fillText("You died at level " + level,282, canvas.height-65);
+	  }
+
+
+
+  }
+
+
+
+  function die(){
+  maxspeed = 0;
+  playerstep = 3;
+  playeralive = 0;
+  }
+
+
+  function keyPush(){
+
+		if (key[68]){playerx_vel += 2;}//move right
+		if (key[65]){playerx_vel -= 2;}//move left
+
+		if (key[87]){playery_vel -= 2;}//move up
+		if (key[83]){playery_vel += 2;}//move down
+
+		if (key[40]){shoot('down')}//shoot down
+		if (key[38]){shoot('up')}//shoot up
+		if (key[37]){shoot('left')}//shoot left
+		if (key[39]){shoot('right')}//shoot right
+		if (key[81]){shoptoggle()}//shoot right
+
+		if (key[88]){upgradel()}//upgrade left
+		if (key[90]){upgrader()}//upgrade right
+}
+
+</script>
+</body>
+</HTML>
