@@ -3,4 +3,4 @@
 
 # cowboy game
 
-## can be found [here](http://towers4u.000webhostapp.com/)
+** [demo can be found here](http://towers4u.000webhostapp.com/) **
