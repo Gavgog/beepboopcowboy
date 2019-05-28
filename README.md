@@ -1,6 +1,6 @@
 "# beepboopcowboy" 
 
 
-##cowboy game
+# cowboy game
 
-### can be found [here](http://towers4u.000webhostapp.com/)
+## can be found [here](http://towers4u.000webhostapp.com/)
